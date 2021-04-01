@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Add CSS and JS to Thymeleaf</title>
+    <link th:href="@{/styles/cssandjs/main.css}" rel="stylesheet" />
+</head>
+<body>
+<h2>Form</h2>
+    <form action="#" th:action="@{/greeting}" th:object="${greeting}" method="post">
+        <p>Id: <input type="text" th:field="*{id}"></p>
+        <p>Message: <input type="text" th:field="*{content}"></p>
+        <p><input type="submit" value="Submit"><input type="reset" value="Reset"></p>
+    </form>
+</body>
+</html>
