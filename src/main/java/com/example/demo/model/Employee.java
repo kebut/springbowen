@@ -1,7 +1,12 @@
 package com.example.demo.model;
 
+import com.sun.istack.NotNull;
+
 import javax.persistence.Column;
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 
 @Entity
 @Table(name = "employees")
@@ -12,13 +17,29 @@ public class Employee {
     private long id;
 
     @Column(name = "first_name")
+    @NotEmpty
+    @Size(min=5, max = 34)
     private String firstName;
 
     @Column(name = "last_name")
+    @NotEmpty
+    @Size(min=5, max = 34)
     private String lastName;
 
     @Column(name = "email")
+    @NotEmpty
+    @Email
     private String email;
+
+    public Employee() {
+    }
+
+    public Employee(@NotEmpty @Size(min = 5, max = 34) String firstName, @NotEmpty @Size(min = 5, max = 34) String lastName, @NotEmpty @Email String email) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+    }
+
     public long getId() {
         return id;
     }

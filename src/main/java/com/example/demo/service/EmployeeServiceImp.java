@@ -3,6 +3,10 @@ package com.example.demo.service;
 import com.example.demo.Repository.EmployeeRepository;
 import com.example.demo.model.Employee;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,5 +42,13 @@ public class EmployeeServiceImp implements EmployeeService {
     @Override
     public void deleteEmployeeById(long id) {
         this.employeeRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<Employee> findPaginated(int pageNo, int PageSize, String sortField, String sortDirection) {
+        Sort sort = sortDirection.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortField).ascending() :
+                Sort.by(sortField).descending();
+        Pageable pageable = PageRequest.of(pageNo -1, PageSize, sort);
+        return this.employeeRepository.findAll(pageable);
     }
 }
