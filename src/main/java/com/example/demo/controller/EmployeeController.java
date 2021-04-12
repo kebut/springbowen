@@ -1,86 +1,70 @@
 package com.example.demo.controller;
 
+import com.example.demo.Exception.ResourceNotFoundException;
+import com.example.demo.Repository.EmployeeRepository;
 import com.example.demo.model.Employee;
-import com.example.demo.service.EmployeeService;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-@Controller
+@CrossOrigin(origins = "http://localhost:3000")
+@RestController
+@RequestMapping("/api/v1/")
 public class EmployeeController {
 
-
-    // display list of employees
-    @GetMapping("/")
-    public String viewHomePage(Model model) {
-
-        return findPaginated(1, "firstName", "asc",  model);
-    }
-
-
     @Autowired
-    private EmployeeService employeeService;
-    @GetMapping("/page/{pageNo}")
-    private String findPaginated(@PathVariable(value = "pageNo") int pageNo,
-                                 @RequestParam("sortField") String sortField,
-                                 @RequestParam("sortDir") String sortDir,
-                                 Model model) {
-        int pageSize = 5;
-        Page<Employee> page = employeeService.findPaginated(pageNo, pageSize, sortField, sortDir);
-        List<Employee> listEmployees = page.getContent();
+    private EmployeeRepository employeeRepository;
 
-        //model for paging
-        model.addAttribute("currentPage", pageNo);
-        model.addAttribute("totalPages", page.getTotalElements());
-        model.addAttribute("totalItems", page.getTotalElements());
-
-        //model for sorting
-        model.addAttribute("sortField", sortField);
-        model.addAttribute("sortDir", sortDir);
-        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
-
-        model.addAttribute("listEmployees", listEmployees);
-
-        return "index";
+    //get all employees
+    @GetMapping("/employees")
+    public List <Employee> getAllEmployees(){
+        return employeeRepository.findAll();
     }
 
-
-
-    @GetMapping("/showNewEmployeeForm")
-    public String showNewEmployeeForm(Model model) {
-        // create model attribute to bind form data
-        Employee employee = new Employee();
-        model.addAttribute("employee", employee);
-        return "new_employee";
+    //create employee rest api
+    @PostMapping("/employees")
+    public Employee createEmployeee(@RequestBody Employee employee){
+        return employeeRepository.save(employee);
     }
 
-    @PostMapping("/saveEmployee")
-    public String saveEmployee(@ModelAttribute("employee") Employee employee) {
-        // save employee to database
-        employeeService.saveEmployee(employee);
-        return "redirect:/";
+    //get employee by id rest api
+    @GetMapping("/employees/{id}")
+    public ResponseEntity <Employee> getEmployeeById(@PathVariable Long id){
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not exist with id : " + id));
+        return ResponseEntity.ok(employee);
     }
 
-    @GetMapping("/showFormForUpdate/{id}")
-    public String showFormForUpdate(@PathVariable(value = "id") long id, Model model) {
+    //update employee rest api
+    @PutMapping("/employees/{id}")
+    public ResponseEntity <Employee> updateEmployee(@PathVariable Long id, @RequestBody Employee employeeDetails){
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not exist with id : " + id));
 
-        // get employee from the service
-        Employee employee = employeeService.getEmployeeById(id);
+        employee.setFirstName(employeeDetails.getFirstName());
+        employee.setLastName(employeeDetails.getLastName());
+        employee.setEmail(employeeDetails.getEmail());
 
-        // set employee as a model attribute to pre-populate the form
-        model.addAttribute("employee", employee);
-        return "update_employee";
+        Employee updatedEmployee = employeeRepository.save(employee);
+        return ResponseEntity.ok(updatedEmployee);
     }
 
-    @GetMapping("/deleteEmployee/{id}")
-    public String deleteEmployee(@PathVariable(value = "id") long id) {
+    //delete employee rest api
+    @DeleteMapping("/employees/{id}")
+    public ResponseEntity<Map<String, Boolean>> deleteEmployee(@PathVariable Long id){
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not exist with id : " + id));
 
-        // call delete employee method
-        this.employeeService.deleteEmployeeById(id);
-        return "redirect:/";
+        employeeRepository.delete(employee);
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("deleted", Boolean.TRUE);
+        return ResponseEntity.ok(response);
     }
+
 }
